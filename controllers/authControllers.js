@@ -76,7 +76,7 @@ exports.protect = async (req, res, next) => {
 		if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
 			token = req.headers.authorization.split(' ')[1];
 		}
-		console.log(token);
+		//console.log(token);
 		if (!token) {
 			return res.status(401).json({
 				status  : 'Fail',
@@ -86,7 +86,9 @@ exports.protect = async (req, res, next) => {
 
 		//2)Token Verification
 		const decoded = await util.promisify(jwt.verify)(token, process.env.JWT_SECRET);
-		const freshuUser = await User.find(decoded.id);
+		console.log(decoded);
+		const freshuUser = await User.findById(decoded.id);
+		console.log(freshuUser);
 		if (!freshuUser) {
 			return res.status(401).json({
 				status  : 'Fail',
@@ -94,7 +96,7 @@ exports.protect = async (req, res, next) => {
 			});
 			next();
 		}
-
+		req.user = freshuUser;
 		next();
 	} catch (err) {
 		res.status(400).json({

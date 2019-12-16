@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.post('/signup', aouthControllers.signup);
 router.post('/login', aouthControllers.login);
-router.route('/').get(aouthControllers.protect, usersControllers.getAllUsers).post(usersControllers.createUser);
+router.route('/').get(aouthControllers.protect, aouthControllers.restrictTo('admin'), usersControllers.getAllUsers);
+
 router
 	.route('/:id')
 	.get(usersControllers.getUserById)
