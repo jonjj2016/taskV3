@@ -10,6 +10,7 @@ router.patch('/forgotPassword', aouthControllers.forgotPassword);
 router.patch('/resetPassword/:token', aouthControllers.resetPassword);
 router.patch('/updatePassword', aouthControllers.protect, aouthControllers.updatePassword);
 router.patch('/updateInfo', aouthControllers.protect, aouthControllers.updateInfo);
+router.delete('/deleteUser', aouthControllers.protect, aouthControllers.deleteUser);
 
 router
 	.route('/:id')

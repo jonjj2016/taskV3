@@ -138,7 +138,7 @@ exports.forgotPassword = async (req, res, next) => {
 
 	//2) create token and send to users email
 	const resetToken = user.createPasswordResetToken();
-	console.log('resetToken', user);
+	//console.log('resetToken', user);
 
 	await user.save({ validateBeforeSave: false });
 
@@ -226,7 +226,7 @@ exports.updateInfo = async (req, res, next) => {
 	if (req.body.password || req.user.passwordConfirm) {
 		return res.status(400).json({
 			status  : 'Fail',
-			message : 'This rout is not for updating passwords please use /updatePassword rout'
+			message : 'This rout is not for updating passwords, please use /updatePassword rout'
 		});
 	}
 	//geting user from our Db
@@ -235,5 +235,15 @@ exports.updateInfo = async (req, res, next) => {
 		status : 'Success',
 		data   : user
 	});
+	next();
+};
+exports.deleteUser = async (req, res, next) => {
+	//1 finding the user from db
+	const user = await User.findBiIdAndUpdate(req.user._id, { active: false });
+	res.status(204).json({
+		status : 'Success',
+		data   : null
+	});
+	//2 updating data so that user be inactive
 	next();
 };
