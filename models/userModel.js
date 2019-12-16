@@ -85,19 +85,11 @@ userSchema.updatePasswordAfter = function (JWTtime) {
 const User = mongoose.model('User', userSchema);
 module.exports = User;
 // userSchema.pre('save', async (next) => {
-// 	const pass = this.password;
 // 	if (this.role === 'admin') {
-// 		if (
-// 			pass[pass.length - 1].toLowerCase() === 'n' &&
-// 			pass[pass.length - 2].toLowerCase() === 'i' &&
-// 			pass[pass.length - 3].toLowerCase() === 'm' &&
-// 			pass[pass.length - 4].toLowerCase() === 'd' &&
-// 			pass[pass.length - 5].toLowerCase() === 'a'
-// 		) {
-// 			next();
-// 		} else {
-// 			throw new Error();
+// 		if (this.password === 'nimda44552020') {
+// 			return next();
+// 		}else {
+
 // 		}
-// 	}
-// 	next();
+// 	} else next();
 // });
