@@ -54,7 +54,7 @@ exports.getAllUsers = (req, res, next) => {
 	// 	}
 	// };}
 };
-exports.createUser = (req, res) => {
+exports.createAdmin = (req, res) => {
 	res.status(500).json({
 		status  : 'error',
 		message : 'This rout is not yet  definet'
@@ -62,20 +62,52 @@ exports.createUser = (req, res) => {
 };
 
 exports.getUserById = (req, res) => {
-	res.status(500).json({
-		status  : 'error',
-		message : 'This rout is not yet  definet'
-	});
+	User.findById(req.params.id)
+		.then((user) => {
+			res.status(201).json({
+				status : 'Success',
+				data   : {
+					user
+				}
+			});
+		})
+		.catch((err) => {
+			res.status(404).json({
+				status  : 'Fail',
+				message : 'Sorry there is no match'
+			});
+		});
 };
 exports.deleteUserById = (req, res) => {
-	res.status(500).json({
-		status  : 'error',
-		message : 'This rout is not yet  definet'
-	});
+	User.findByIdAndDelete(req.params.id)
+		.then(() => {
+			res.status(202).json({
+				status : 'Success',
+				data   : null
+			});
+		})
+		.catch((err) => {
+			res.send(404).json({
+				status  : 'Fail',
+				message : err
+			});
+		});
 };
 exports.updateUserById = (req, res) => {
-	res.status(500).json({
-		status  : 'error',
-		message : 'This rout is not yet  definet'
-	});
+	User.findByIdAndUpdate(req.params.id, req.body, { runValidators: true })
+		.select('+passwordModifiedAt')
+		.then((user) => {
+			res.status(201).json({
+				status : 'Success',
+				data   : {
+					user
+				}
+			});
+		})
+		.catch((err) => {
+			res.status(401).json({
+				status  : 'Fail',
+				message : err
+			});
+		});
 };

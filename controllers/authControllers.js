@@ -16,9 +16,19 @@ const signToken = (id) => {
 };
 const createAndSendJWT = (user, statusCode, res) => {
 	const token = signToken(user._id);
-	res.status(200).json({
-		status : statusCode,
-		token
+	const cookiesOption = {
+		expires  : new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+		httpOnly : true
+	};
+	//if ((process.env.NODE_ENV = 'production')) cookiesOption.secure = true;
+	res.cookie('jwt', token, cookiesOption);
+	user.password = undefined;
+	res.status(statusCode).json({
+		status : 'Success',
+		token,
+		data   : {
+			user
+		}
 	});
 };
 const filterMyData = (body, ...rest) => {
@@ -33,14 +43,7 @@ const filterMyData = (body, ...rest) => {
 exports.signup = async (req, res) => {
 	try {
 		const newUser = await User.create(req.body);
-		const token = signToken(newUser._id);
-		res.status(201).json({
-			status : 'Success',
-			token,
-			data   : {
-				user : newUser
-			}
-		});
+		createAndSendJWT(newUser, 201, res);
 	} catch (err) {
 		res.status(400).json({
 			status  : 'Fail',
@@ -132,20 +135,23 @@ exports.restrictTo = (...roles) => {
 	};
 };
 exports.forgotPassword = async (req, res, next) => {
-	//console.log(666666666);
 	//1)find user
 	const user = await User.findOne({ email: req.body.email });
-
 	//2) create token and send to users email
 	const resetToken = user.createPasswordResetToken();
-	//console.log('resetToken', user);
+	//console.log(await User.findOne({ email: req.body.email }));
+	// CANNOT SAVE USER WITH passwordResetToken and passwordResetExpires fields
+	// await user
+	// 	.save({ validateBeforeSave: false })
+	// 	.then((user) => console.log(099999999999999, user))
+	// 	.catch((err) => console.log(user));
+	const modifiedUser = await user.save({ validateBeforeSave: false }); // User.findOne({ email: req.body.email });
+	console.log(modifiedUser);
 
-	await user.save({ validateBeforeSave: false });
-
-	//3)Send it to user
 	const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
-	const message = `Forgot your password ? Submit a PATCH requiest with your new password and confirmPassword to :${resetURL} .\n If you haven't dorgot  your password then ignore this message  `;
 
+	const message = `Forgot your password ? Submit a PATCH requiest with your new password and confirmPassword to : ${resetURL} .\n If you haven't dorgot  your password then ignore this message  `;
+	//3)Send it to user
 	try {
 		await sendEmail({
 			email   : user.email,
@@ -160,7 +166,8 @@ exports.forgotPassword = async (req, res, next) => {
 	} catch (err) {
 		user.passwordResetToken = undefined;
 		user.passwordResetExpires = undefined;
-		await isSecureContext.save({
+
+		await user.save({
 			validateBeforeSave : false
 		});
 		return res.status(500).json({
@@ -174,7 +181,6 @@ exports.resetPassword = async (req, res, next) => {
 	try {
 		//Get token from user
 		const token = crypto.createHash('sha256').update(req.params.token).digest('hex');
-		console.log(token);
 
 		//2 get user with token provided and check if token is valid
 		const user = await User.findOne({ passwordResetToken: token, passwordResetExpires: { $gt: Date.now() } });

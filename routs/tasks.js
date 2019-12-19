@@ -5,11 +5,20 @@ const aouthControllers = require('../controllers/authControllers');
 
 //router.param('txt', taskControllers.checkTxt);
 router.route('/top-tasks').get(aouthControllers.protect, taskControllers.aliasTopTasks, taskControllers.getAllTasks);
-router.route('/').get(aouthControllers.protect, taskControllers.getAllTasks).post(taskControllers.postTask);
+router
+	.route('/')
+	.get(aouthControllers.protect, taskControllers.getAllTasks)
+	.post(aouthControllers.protect, aouthControllers.restrictTo('admin'), taskControllers.postTask);
 router
 	.route('/:id')
-	.get(aouthControllers.protect, taskControllers.getTaskById)
 	.patch(aouthControllers.protect, aouthControllers.restrictTo('dev', 'admin'), taskControllers.updateTaskById)
-	.delete(aouthControllers.protect, aouthControllers.restrictTo('dev', 'admin'), taskControllers.deleteTaskById);
-router.route('/filter/:txt').get(taskControllers.filterTasksById);
+	.delete(aouthControllers.protect, aouthControllers.restrictTo('dev', 'admin'), taskControllers.deleteTaskById)
+	.get(aouthControllers.protect, taskControllers.getTaskById);
+router.route('/filter/:txt').get(aouthControllers.protect, taskControllers.filterTasksById);
+router
+	.route('/updateMyCollection/:id/:stepId?/:microstepId?')
+	.patch(aouthControllers.protect, taskControllers.addToUsersTask)
+	.delete(aouthControllers.protect, taskControllers.deleteusersTask)
+	.patch(aouthControllers.protect, taskControllers.togglingCompleted);
+
 module.exports = router;

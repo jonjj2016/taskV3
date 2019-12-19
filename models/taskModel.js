@@ -1,14 +1,54 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const microStep = new mongoose.Schema({
+	step      : {
+		type     : String,
+		trim     : true,
+		required : [ true, 'Step field should be filled' ]
+	},
+	comments  : String,
+	completed : {
+		type    : Boolean,
+		default : false
+	}
+});
+const step = new mongoose.Schema({
+	step_title  : {
+		//index    : { unique: false },
+		unique   : false,
+		type     : String,
+		trim     : true,
+		required : [ true, 'Title field must be filled' ]
+	},
+	description : {
+		type     : String,
+		trim     : true,
+		required : [ true, 'Description field must be filled' ]
+	},
 
+	createdAt   : {
+		type    : Date,
+		default : Date.now()
+	},
+	progress    : {
+		type    : Number,
+		default : 0
+	},
+	completed   : {
+		type    : Boolean,
+		default : false
+	},
+	microSteps  : [ microStep ]
+});
 const taskModel = new mongoose.Schema({
 	title       : {
 		type      : String,
-		unique    : true,
+		unique    : false,
+		//index     : { unique: false },
 		trim      : true,
 		required  : [ true, 'Title field must be filled' ],
-		maxlength : [ 40, 'A tour must have  less or equal than 40 characters' ],
-		minlength : [ 10, 'A tour must have  more or equal than 10 characters' ]
+		maxlength : [ 60, 'A task name have  less or equal than 40 characters' ],
+		minlength : [ 10, 'A task name have  more or equal than 10 characters' ]
 	},
 	description : {
 		type     : String,
@@ -27,23 +67,14 @@ const taskModel = new mongoose.Schema({
 		type    : Date,
 		default : Date.now()
 	},
-	steps       : [
-		{
-			step     : {
-				type     : String,
-				trim     : true,
-				required : [ true, 'Step field should be filled' ]
-			},
-			comments : [ String ],
-			complete : {
-				type    : Boolean,
-				default : false
-			}
-		}
-	]
+	steps       : [ step ]
 });
 taskModel.pre('save', function (next) {
-	this.slug = slugify(this.name, { lower: true });
+	this.slug = slugify(this.title, { lower: true });
 	next();
 });
-module.exports = Task = mongoose.model('tasks', taskModel);
+taskModel.pre('save', function (next) {
+	if (this.progress === 100) this.completed = true;
+	next();
+});
+module.exports = Task = mongoose.model('Tasks', taskModel);

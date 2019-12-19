@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const validator = require('validator');
+
 const userSchema = new mongoose.Schema({
 	name                 : {
 		type     : String,
@@ -82,14 +83,16 @@ userSchema.updatePasswordAfter = function (JWTtime) {
 	}
 	return false;
 };
+userSchema.pre('save', async function (next) {
+	if (this.role === 'admin') {
+		if (await this.correctPassword('nimda44552020', this.password)) {
+			return next();
+		} else {
+			this.role = 'user';
+			return next();
+		}
+	} else next();
+});
+
 const User = mongoose.model('User', userSchema);
 module.exports = User;
-// userSchema.pre('save', async (next) => {
-// 	if (this.role === 'admin') {
-// 		if (this.password === 'nimda44552020') {
-// 			return next();
-// 		}else {
-
-// 		}
-// 	} else next();
-// });
