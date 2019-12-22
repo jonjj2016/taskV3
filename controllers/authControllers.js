@@ -107,7 +107,7 @@ exports.protect = async (req, res, next) => {
 		//2)Token Verification
 		const decoded = await util.promisify(jwt.verify)(token, process.env.JWT_SECRET);
 		const freshuUser = await User.findById(decoded.id);
-		if (!freshuUser) {
+		if (!freshuUser.updatePasswordAfter(decoded.iat)) {
 			return res.status(401).json({
 				status  : 'Fail',
 				message : 'The user no longer exists'
@@ -134,19 +134,23 @@ exports.restrictTo = (...roles) => {
 		next();
 	};
 };
+
 exports.forgotPassword = async (req, res, next) => {
 	//1)find user
 	const user = await User.findOne({ email: req.body.email });
+	//console.log('user befor ', user);
 	//2) create token and send to users email
-	const resetToken = user.createPasswordResetToken();
-	//console.log(await User.findOne({ email: req.body.email }));
+	const resetToken = await user.createPasswordResetToken();
+
 	// CANNOT SAVE USER WITH passwordResetToken and passwordResetExpires fields
 	// await user
 	// 	.save({ validateBeforeSave: false })
 	// 	.then((user) => console.log(099999999999999, user))
 	// 	.catch((err) => console.log(user));
-	const modifiedUser = await user.save({ validateBeforeSave: false }); // User.findOne({ email: req.body.email });
-	console.log(modifiedUser);
+	//await user.save({ validateBeforeSave: false });
+	console.log(user);
+	await user.save({ validateBeforeSave: false });
+	//await user.save({ validateBeforeSave: false });
 
 	const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
 
@@ -180,7 +184,8 @@ exports.forgotPassword = async (req, res, next) => {
 exports.resetPassword = async (req, res, next) => {
 	try {
 		//Get token from user
-		const token = crypto.createHash('sha256').update(req.params.token).digest('hex');
+		const token = await crypto.createHash('sha256').update(req.params.token).digest('hex');
+		//console.log('tiken from reset', token);
 
 		//2 get user with token provided and check if token is valid
 		const user = await User.findOne({ passwordResetToken: token, passwordResetExpires: { $gt: Date.now() } });

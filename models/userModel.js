@@ -64,16 +64,19 @@ userSchema.pre('save', function (next) {
 	next();
 });
 userSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
-	return await bcrypt.compare(candidatePassword, userPassword);
+	try {
+		return await bcrypt.compare(candidatePassword, userPassword);
+	} catch (err) {
+		console.log(err);
+	}
 };
-userSchema.methods.changePasswordAfter = function (JTWtimestamp) {
-	return false;
-};
-userSchema.methods.createPasswordResetToken = function () {
+
+userSchema.methods.createPasswordResetToken = async function () {
 	const resetToken = crypto.randomBytes(32).toString('hex');
 	this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 	this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-
+	// console.log('resetToken from model.methods', resetToken);
+	// console.log(this.passwordResetToken);
 	return resetToken;
 };
 userSchema.updatePasswordAfter = function (JWTtime) {

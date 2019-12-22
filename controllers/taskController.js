@@ -49,23 +49,6 @@ exports.postTask = (req, res) => {
 				message : err
 			});
 		});
-	// try {
-	// 	console.log(6666666666666666, req.body);
-
-	// 	const task = await Task.create(req.body);
-	// 	console.log(0000000000000000, task);
-	// 	res.status(200).json({
-	// 		status : 'Success',
-	// 		data   : {
-	// 			task
-	// 		}
-	// 	});
-	// } catch (err) {
-	// 	res.status(400).json({
-	// 		status  : 'Fail',
-	// 		message : err
-	// 	});
-	// }
 };
 exports.getTaskById = async (req, res) => {
 	try {
@@ -122,10 +105,10 @@ exports.deleteusersTask = async (req, res) => {
 	try {
 		const user = await User.findById(req.user._id);
 		const tasks = JSON.parse(JSON.stringify(user.tasks));
-		console.log(111111111111, tasks.length);
+		//console.log(111111111111, tasks.length);
 		const taskIndex = tasks.findIndex((item) => item._id === req.params.id);
 		tasks.splice(taskIndex, 1);
-		console.log(2222222222, tasks.length);
+		//	console.log(2222222222, tasks.length);
 		const updatedUser = await User.findByIdAndUpdate(req.user._id, { tasks: tasks });
 		res.status(201).json({
 			status : 'Success',
@@ -176,6 +159,7 @@ exports.togglingCompleted = async (req, res) => {
 		try {
 			const user = await User.findById(req.user._id);
 			const tasks = JSON.parse(JSON.stringify(user.tasks));
+
 			if (tasks.length > 0) {
 				const taskIndex = tasks.findIndex((item) => item._id === req.params.id);
 				const steps = tasks[taskIndex].steps;
